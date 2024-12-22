@@ -1,11 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
-import users from "./routes/users.route.js";
 import mongoose from "mongoose";
 import keys from "./config/keys.config.js";
 import passport from "passport";
 import initializePassport from "./config/passport.config.js";
+import users from "./routes/users.route.js";
+import profile from "./routes/profile.route.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ mongoose
 
 //Use routes
 app.use("/api/users", users);
+app.use("/api/profile", profile);
 
 const PORT = process.env.PORT || 4000;
 

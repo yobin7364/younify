@@ -21,7 +21,7 @@ const initializePassport = () => {
         return done(null, false, { message: "User not found" });
       } catch (err) {
         // Log any errors and pass them to the `done` callback
-        console.error(err);
+        // console.error(err);
         return done(err, false, {
           message: "Error occurred during authentication",
         });
