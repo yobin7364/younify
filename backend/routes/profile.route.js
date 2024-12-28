@@ -6,6 +6,8 @@ import passport from "passport";
 
 import { validateProfile } from "../validator/profile.validator.js";
 
+import { upload, deleteFileFromS3 } from "../config/s3.config.js";
+
 //this points to /api/users/test or any route ending with /test
 //@route  GET /api/profile/test
 //@desc   Tests post route
@@ -66,6 +68,7 @@ router.get(
 router.post(
   "/",
   passport.authenticate("jwt", { session: false }),
+  upload.single("avatar"), // Multer middleware to handle single file upload (avatar)
   async (req, res) => {
     // Validate input
     const { errors, isValid } = validateProfile(req.body);
@@ -75,15 +78,18 @@ router.post(
       return res.status(400).json(errors);
     }
 
-    const { bio, avatar, location } = req.body;
+    const { bio, location } = req.body;
+
+    // When using upload.single('avatar') with Multer, the uploaded file is available in the req.file object
+    //This is the URL of the file uploaded to S3
+    let avatar = req.file?.location;
 
     try {
-      // Extract user from req.user (authenticated user), and it is created by passport.js
+      // Extract user from req.user (authenticated user)
       const user = req.user.id;
 
       // Check if the user already has a profile
       const existingProfile = await Profile.findOne({ user });
-
       if (existingProfile) {
         return res.status(400).json({ message: "Profile already exists" });
       }
@@ -105,34 +111,54 @@ router.post(
 //@desc   Update users profile
 //@access Private
 
+// Route for handling profile updates (delete and upload)
 router.put(
   "/:profileId",
-  passport.authenticate("jwt", { session: false }),
+  upload.single("avatar"), // Multer middleware to handle single file upload
   async (req, res) => {
-    // Validate input
-    const { errors, isValid } = validateProfile(req.body);
-
-    // Check if validation fails
-    if (!isValid) {
-      return res.status(400).json(errors);
-    }
-
-    const profileId = req.params.profileId; // Get profileId from URL parameters
-    const { bio, avatar, location } = req.body;
+    const { profileId } = req.params;
+    const { bio, location } = req.body;
+    let avatar;
 
     try {
-      const profile = await Profile.findOneAndUpdate(
-        { _id: profileId }, // Find profile by profileId
-        { $set: { bio, avatar, location } }, // Update fields
-        { new: true } // Return the updated profile
-      );
+      // Fetch current profile
+      const profile = await Profile.findById(profileId);
 
       if (!profile) {
         return res.status(404).json({ message: "Profile not found" });
       }
 
+      // If the avatar is being removed (avatar is null and multer file is also null i.e req.file), delete the old image from S3
+      if (!req.body.avatar && profile.avatar && !req.file) {
+        await deleteFileFromS3(profile.avatar.split(".com/")[1]); // Extract S3 file key
+        avatar = null; // Set avatar to null, meaning no avatar
+      }
+
+      // If a new avatar is uploaded, delete the old image from S3
+      else if (req.file) {
+        if (profile.avatar) {
+          // If the profile already has an avatar, delete the old image from S3
+          await deleteFileFromS3(profile.avatar.split(".com/")[1]); // Extract S3 file key
+        }
+
+        avatar = req.file.location; // New avatar URL from S3
+      }
+
+      // Keep existing avatar if no new file uploaded
+      else {
+        avatar = profile.avatar;
+      }
+
+      // Update profile with new bio, location, and avatar
+      profile.bio = bio;
+      profile.location = location;
+      profile.avatar = avatar;
+
+      await profile.save();
+
       res.json({ message: "Profile updated successfully", profile });
     } catch (error) {
+      console.error("Error updating profile", error);
       res.status(500).json({ message: "Server error", error });
     }
   }
@@ -147,13 +173,23 @@ router.delete(
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     const userId = req.user.id;
+    const profileId = req.params.profileId;
+
     try {
-      // Delete the profile first
-      const profile = await Profile.findOneAndDelete({ user: userId });
+      // Fetch current profile
+      const profile = await Profile.findById(profileId);
 
       if (!profile) {
         return res.status(404).json({ message: "Profile not found" });
       }
+
+      // if avatar available, delete it from s3
+      if (profile.avatar) {
+        await deleteFileFromS3(profile.avatar.split(".com/")[1]); // Extract S3 file key
+      }
+
+      // Delete the profile first
+      const profileToDelete = await Profile.findOneAndDelete({ user: userId });
 
       // After deleting the profile, delete the associated user
       const user = await User.findByIdAndDelete(userId);
