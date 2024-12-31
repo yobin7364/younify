@@ -20,6 +20,23 @@ const ProfileSchema = new Schema(
       type: String, // City or Country
       maxlength: 50,
     },
+    visibility: {
+      type: String,
+      enum: ["public", "private"], // Allowed values: public or private
+      default: "private", // Default visibility is private
+    },
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Profile",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Profile",
+      },
+    ],
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

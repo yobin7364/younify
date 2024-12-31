@@ -75,10 +75,10 @@ router.post(
 
     // Check if validation fails
     if (!isValid) {
-      return res.status(400).json(errors);
+      return res.status(400).json({ message: "Invalid Field", errors });
     }
 
-    const { bio, location } = req.body;
+    const { bio, location, visibility } = req.body;
 
     // When using upload.single('avatar') with Multer, the uploaded file is available in the req.file object
     //This is the URL of the file uploaded to S3
@@ -94,8 +94,20 @@ router.post(
         return res.status(400).json({ message: "Profile already exists" });
       }
 
+      // Initialize followers and following as empty arrays
+      const followers = [];
+      const following = [];
+
       // Create and save the profile
-      const profile = new Profile({ user, bio, avatar, location });
+      const profile = new Profile({
+        user,
+        bio,
+        avatar,
+        location,
+        visibility,
+        followers,
+        following,
+      });
       await profile.save();
 
       res
@@ -116,8 +128,16 @@ router.put(
   "/:profileId",
   upload.single("avatar"), // Multer middleware to handle single file upload
   async (req, res) => {
+    // Validate input
+    const { errors, isValid } = validateProfile(req.body);
+
+    // Check if validation fails
+    if (!isValid) {
+      return res.status(400).json({ message: "Invalid Field", errors });
+    }
+
     const { profileId } = req.params;
-    const { bio, location } = req.body;
+    const { bio, location, visibility } = req.body;
     let avatar;
 
     try {
@@ -153,6 +173,7 @@ router.put(
       profile.bio = bio;
       profile.location = location;
       profile.avatar = avatar;
+      profile.visibility = visibility;
 
       await profile.save();
 
@@ -189,7 +210,7 @@ router.delete(
       }
 
       // Delete the profile first
-      const profileToDelete = await Profile.findOneAndDelete({ user: userId });
+      await Profile.findOneAndDelete({ user: userId });
 
       // After deleting the profile, delete the associated user
       const user = await User.findByIdAndDelete(userId);

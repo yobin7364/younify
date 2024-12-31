@@ -22,17 +22,14 @@ const PostSchema = new Schema(
       type: [String], // Array of URLs for images/videos
       default: [],
     },
-    tags: {
-      type: [String], // Array of tags
+    hashTags: {
+      type: [String], // Array of hash tags
       default: [],
     },
-    createdAt: {
-      type: Date,
-      default: Date.now, // Automatically set to the current date/time
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now, // Automatically set to the current date/time
+    mentions: {
+      type: [mongoose.Schema.Types.ObjectId], // Mentions of other users
+      ref: "users",
+      default: [],
     },
     likes: {
       type: Number,
@@ -40,24 +37,8 @@ const PostSchema = new Schema(
     },
     comments: [
       {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "users" }, // User who commented
-        content: { type: String, required: true }, // Comment content
-        likes: {
-          type: Number,
-          default: 0, // Default likes for comment
-        },
-        replies: [
-          {
-            user: { type: mongoose.Schema.Types.ObjectId, ref: "users" }, // Reply author
-            content: { type: String, required: true }, // Reply content
-            likes: {
-              type: Number,
-              default: 0, // Default likes for reply
-            },
-            createdAt: { type: Date, default: Date.now }, // Timestamp for reply
-          },
-        ],
-        createdAt: { type: Date, default: Date.now }, // Timestamp for comment
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
       },
     ],
   },
