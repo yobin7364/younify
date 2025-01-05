@@ -45,6 +45,32 @@ const getContentType = (file) => {
   }
 };
 
+// File filter function to allow images and/or videos based on request condition
+const fileFilter = (req, file, cb) => {
+  const allowedImageTypes = /jpeg|jpg|png|gif/;
+  const allowedVideoTypes = /mp4|avi|mov|mkv/;
+  const isVideoUpload = req.body.type && req.body.type === "video"; // Check if 'type' is 'video'
+
+  // If it's a video upload, allow both images and videos
+  if (isVideoUpload) {
+    if (
+      allowedImageTypes.test(file.mimetype) ||
+      allowedVideoTypes.test(file.mimetype)
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image or video files are allowed!"), false);
+    }
+  } else {
+    // Default to allowing images only
+    if (allowedImageTypes.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"), false);
+    }
+  }
+};
+
 // Multer S3 Storage Configuration
 const upload = multer({
   storage: multerS3({
@@ -60,6 +86,9 @@ const upload = multer({
       cb(null, contentType); // Set the Content-Type dynamically
     },
   }),
+
+  fileFilter: fileFilter, // Apply the file filter
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
 });
 
 // Helper function to delete file from S3
