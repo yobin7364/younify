@@ -8,7 +8,7 @@ import initializePassport from "./config/passport.config.js";
 import users from "./routes/users.route.js";
 import profile from "./routes/profile.route.js";
 import post from "./routes/post.route.js";
-import connect from "./routes/connect.route.js";
+import follow from "./routes/follow.route.js";
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ mongoose
 app.use("/api/users", users);
 app.use("/api/profile", profile);
 app.use("/api/post", post);
-app.use("/api/connect", connect);
+app.use("/api/connect", follow);
 
 const PORT = process.env.PORT || 4000;
 

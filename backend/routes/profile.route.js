@@ -69,7 +69,23 @@ router.get(
 router.post(
   "/",
   passport.authenticate("jwt", { session: false }),
-  upload.single("avatar"), // Multer middleware to handle single file upload (avatar)
+  (req, res, next) => {
+    // Use the Multer middleware, but handle errors properly
+    upload.single("avatar")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        // Multer-specific errors (e.g., file too large)
+        return res
+          .status(400)
+          .json({ message: "Multer error", error: err.message });
+      } else if (err) {
+        // General errors (e.g., file type not allowed)
+        return res
+          .status(400)
+          .json({ message: "File upload error", error: err.message });
+      }
+      next(); // Proceed to the next middleware
+    });
+  },
   async (req, res) => {
     // Validate input
     const { errors, isValid } = validateProfile(req.body);
