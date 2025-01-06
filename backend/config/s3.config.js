@@ -49,6 +49,7 @@ const getContentType = (file) => {
 const fileFilter = (req, file, cb) => {
   const allowedImageTypes = /jpeg|jpg|png|gif/;
   const allowedVideoTypes = /mp4|avi|mov|mkv/;
+
   const isVideoUpload = req.body.type && req.body.type === "video"; // Check if 'type' is 'video'
 
   // If it's a video upload, allow both images and videos

@@ -13,6 +13,10 @@ const PostSchema = new Schema(
       type: String,
       required: true, // Content is required
     },
+    type: {
+      type: String,
+      default: "video",
+    },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users", // Links to the User model, users is collection

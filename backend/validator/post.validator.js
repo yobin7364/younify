@@ -15,16 +15,9 @@ export const validatePost = (data) => {
       "string.base": "Content must be a string.",
       "any.required": "Content is required.",
     }),
-
-    author: Joi.string()
-      .pattern(objectIdPattern) // Use pattern validation for ObjectId
-      .required()
-      .messages({
-        "string.base": "Author ID must be a string.",
-        "string.pattern.base":
-          "Author ID must be a valid ObjectId (24 hexadecimal characters).",
-        "any.required": "Author is required.",
-      }),
+    type: Joi.string().default("video").messages({
+      "string.base": "Type must be a string.",
+    }),
 
     media: Joi.array()
       .items(Joi.string().uri().message("Each media URL must be a valid URI"))
@@ -32,6 +25,8 @@ export const validatePost = (data) => {
       .messages({
         "array.base": "Media must be an array.",
       }),
+
+    removedMedia: Joi.array().items(Joi.string().uri()).optional(), // Validate array of strings (file URLs or keys)
 
     hashTags: Joi.array()
       .items(
