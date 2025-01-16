@@ -9,6 +9,8 @@ import users from "./routes/users.route.js";
 import profile from "./routes/profile.route.js";
 import post from "./routes/post.route.js";
 import follow from "./routes/follow.route.js";
+import comment from "./routes/comment.route.js";
+import like from "./routes/like.route.js";
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ app.use("/api/users", users);
 app.use("/api/profile", profile);
 app.use("/api/post", post);
 app.use("/api/connect", follow);
+app.use("/api/comment", comment);
+app.use("/api/like", like);
 
 const PORT = process.env.PORT || 4000;
 

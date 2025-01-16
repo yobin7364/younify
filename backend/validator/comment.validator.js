@@ -5,15 +5,16 @@ const objectIdPattern = /^[0-9a-fA-F]{24}$/;
 // Post validation schema
 export const validateComment = (data) => {
   const schema = Joi.object({
-    user: Joi.string()
-      .pattern(objectIdPattern) // Use the variable for the pattern
+    postId: Joi.string()
       .required()
+      .pattern(objectIdPattern) // Use the variable for the pattern
       .messages({
-        "string.base": "User ID must be string.",
+        "string.base": "Post ID must be a string.",
         "string.pattern.base":
-          "User ID must be a valid ObjectId (24 hexadecimal characters).",
-        "any.required": "User ID is required",
+          "Post ID must be a valid ObjectId (24 hexadecimal characters).",
+        "any.required": "Post ID is required.",
       }),
+
     content: Joi.string().required().messages({
       "string.base": "Content must be a string.",
       "any.required": "Content is required.",

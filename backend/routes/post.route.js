@@ -94,11 +94,16 @@ router.get(
   "/myPosts",
   passport.authenticate("jwt", { session: false }), // Ensure user is authenticated
   async (req, res) => {
+    const { page = 1, limit = 10 } = req.query; // Extract query, page, and limit
+
     try {
       // Find posts created by the logged-in user (using req.user.id), createdAt: -1 means sort post by latest post
-      const posts = await Post.find({ author: req.user.id }).sort({
-        createdAt: -1,
-      });
+      const posts = await Post.find({ author: req.user.id })
+        .skip((page - 1) * limit) // Skip for pagination
+        .limit(limit) // Limit the number of posts per page
+        .sort({
+          createdAt: -1,
+        });
 
       if (posts.length === 0) {
         return res

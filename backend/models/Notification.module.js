@@ -11,7 +11,7 @@ const NotificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["mention", "comment", "like"], // Different notification types
+      enum: ["mention", "comment", "likedUsers"], // Different notification types
       required: true,
     },
     post: {

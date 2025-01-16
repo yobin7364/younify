@@ -14,10 +14,12 @@ const ReplySchema = new Schema(
       type: String,
       required: true,
     },
-    likes: {
-      type: Number,
-      default: 0,
-    },
+    likedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users", // Users who liked the post
+      },
+    ],
     mentions: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "users",
